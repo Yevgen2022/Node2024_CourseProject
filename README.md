@@ -121,3 +121,8 @@ const user = db.user;
 для пароля
 
 17. Create router /login with page
+
+18. Create function async authUser () in User class
+
+19. Create file Authkey.js in classes
+

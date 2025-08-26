@@ -26,4 +26,13 @@ module.exports = class User {
         })
     }
 
+    async authUser() {
+        return await user.findOne({
+            where: {
+                'email': this.email,
+                'password': crypto.createHash('sha256').update(this.salt + this.password).digest('base64')
+            }
+        })
+    }
+
 }
