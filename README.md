@@ -7,5 +7,6 @@
 
   4. Create User class
 
-  5. Create mime.js and static_file.js
-  
+  5. Create mime.js and static_file.js and added into index.js
+
+  6. Const PORT and create server
