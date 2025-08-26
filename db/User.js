@@ -23,6 +23,7 @@ module.exports = function (sequelize) {
         }
     }, {
         timestamps: false,
-        tablename: "user"
+        tableName: "user"
+        
     });
 }

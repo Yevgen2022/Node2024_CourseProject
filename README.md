@@ -69,3 +69,55 @@ module.exports = class User{
         this.salt = '@Da!@$7d';
     }
 }
+
+11. Take information from POST 
+
+if (req.method == 'POST') {
+                let body = '';
+                req.on('data', function (data) {
+                    body += data;
+                });
+
+                req.on('end', async function () {
+                    let post = qs.parse(body);
+                    const user = new User(post.email, post.pass);
+                    if (!(await user.findUser())) {
+                        let result = await user.createUser();
+                        if (result) {
+                            res.end(JSON.stringify({
+                                "success": true,
+                                "action": "user was created"
+                            }))
+                        }
+                        else {
+                            res.end(JSON.stringify({
+                                "success": false,
+                                "action": "create user error"
+                            }))
+                        }
+                    }
+                    else {
+                        res.end(JSON.stringify({
+                            "success": false,
+                            "action": "user exists"
+                        }))
+                    }
+                });
+            }
+
+12.  We connect class User into index.js
+const User = require ("./classes/User");
+
+13. Прописуємо метод findUser (з ORM Sequelize)
+ та додаємо цей метод до роута case '/reguser':
+
+14. Підключаємо Sequelize
+const db = require('../db');
+const user = db.user; 
+
+15. Створюємо метод async createUser () в класі User
+
+16. Підключаємо const crypto = require('crypto');в User.js
+для пароля
+
+17. Create router /login with page

@@ -5,6 +5,8 @@ const qs = require('querystring');
 const { mimeTypes } = require("./utilities/mime");
 const { staticFile } = require("./utilities/static_file");
 
+const User = require("./classes/User");
+
 const PORT = 3500;
 
 http.createServer(async function (req, res) {
@@ -23,6 +25,75 @@ http.createServer(async function (req, res) {
 
         case '/reguser':
             console.log('reguser');
+            if (req.method == 'POST') {
+                let body = '';
+                req.on('data', function (data) {
+                    body += data;
+                });
+
+                req.on('end', async function () {
+                    let post = qs.parse(body);
+                    const user = new User(post.email, post.pass);
+                    if (!(await user.findUser())) {
+                        let result = await user.createUser();
+                        if (result) {
+                            res.end(JSON.stringify({
+                                "success": true,
+                                "action": "user was created"
+                            }))
+                        }
+                        else {
+                            res.end(JSON.stringify({
+                                "success": false,
+                                "action": "create user error"
+                            }))
+                        }
+                    }
+                    else {
+                        res.end(JSON.stringify({
+                            "success": false,
+                            "action": "user exists"
+                        }))
+                    }
+                });
+            }
+            break;
+
+        case '/login':
+            console.log('login');
+            staticFile(res, '/html/login.html', '.html');
+            break;
+
+        case '/login-user':
+            console.log('login-user');
+            if (req.method == 'POST') {
+                let body = '';
+                req.on('data', function (data) {
+                    body += data;
+                });
+
+                req.on('end', async function () {
+                    let post = qs.parse(body);
+                    const user = new User(post.email, post.pass);
+                    let auth = await user.authUser();
+                    if (auth) {
+                        let cookie = await Authkey.createAuthKey(auth.id);
+                        let ts = new Date();
+                        ts.setDate(ts.getDate() + 7);
+                        res.end(JSON.stringify({
+                            "success": true,
+                            "action": "You are logged in",
+                            "cookie": "auth=" + cookie.authkey + "; expires=" + ts.toGMTString() + "; path=/"
+                        }))
+                    }
+                    else {
+                        res.end(JSON.stringify({
+                            "success": false,
+                            "action": "user not found"
+                        }))
+                    }
+                });
+            }
             break;
 
         default:
