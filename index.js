@@ -6,6 +6,7 @@ const { mimeTypes } = require("./utilities/mime");
 const { staticFile } = require("./utilities/static_file");
 
 const User = require("./classes/User");
+const Authkey = require('./class/Authkey');
 
 const PORT = 3500;
 

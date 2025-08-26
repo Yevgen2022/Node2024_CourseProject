@@ -124,5 +124,9 @@ const user = db.user;
 
 18. Create function async authUser () in User class
 
-19. Create file Authkey.js in classes
+19. Create file Authkey.js in classes у якому буде метод який 
+прописує що користувач залогувався
+
+20. Імпортуємо const Authkey = require('./class/Authkey'); 
+у index.js
 
