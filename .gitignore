@@ -1,0 +1,29 @@
+# Node.js dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+.cache/
+.next/
+out/
+
+# Tailwind / PostCSS build output
+public/css/
+*.css.map
+
+# Logs
+logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Env files
+.env
+.env.*
