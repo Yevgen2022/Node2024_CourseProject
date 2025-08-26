@@ -7,4 +7,5 @@
 
   4. Create User class
 
+  5. Create mime.js and static_file.js
   
