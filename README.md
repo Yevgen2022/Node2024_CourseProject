@@ -44,7 +44,7 @@
 }).listen(PORT);
 
 
-8. Proposition: The modern way for querystring is
+8. Proposition: The modern way without querystring is
 
 const http = require('http');
 
@@ -56,3 +56,16 @@ http.createServer((req, res) => {
   // ...твоя логіка
   res.end('OK');
 }).listen(PORT);
+
+9. Added '/reguser' route
+
+10. Create class User with constructor and diferent fields
+
+module.exports = class User{
+    constructor (email, password){
+        this.email = email;
+        this.password = password;
+
+        this.salt = '@Da!@$7d';
+    }
+}

@@ -21,6 +21,10 @@ http.createServer(async function (req, res) {
             staticFile(res, '/html/main_page.html', '.html');
             break;
 
+        case '/reguser':
+            console.log('reguser');
+            break;
+
         default:
             const extname = String(path.extname(url)).toLocaleLowerCase();
             if (extname in mimeTypes) staticFile(res, url, extname);
