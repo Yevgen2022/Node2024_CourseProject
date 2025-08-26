@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/css/normalize.css">
+    <link rel="stylesheet" href="/css/skeleton.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Register User</h1>
+        <!-- The above form looks like this -->
+        <div>
+            <nav>
+                <ul>
+                    <li><a href="/">Register user</a> | </li>
+                    <li><a href="/login">Login user</a> | </li>
+                    <li><a href="/admin">Admin</a></li>
+                </ul>
+            </nav>
+        </div>
+        <form id="form-register-user">
+            <div class="row">
+                <div class="">
+                    <label for="email">Email</label>
+                    <input class="u-full-width" type="email" id="email" value="pupkin@mail.ua">
+                </div>
+                <div class="">
+                    <label for="password">Password</label>
+                    <input class="u-full-width" type="password" id="password" value="123">
+                </div>
+                <div class="">
+                    <label for="password-2">Retype password</label>
+                    <input class="u-full-width" type="password" id="password-2" value="123">
+                </div>
+                <div id="message"></div>
+                <input class="button-primary" type="submit" value="Register user">
+            </div>
+        </form>
+    </div>
+
+    <script src="/js/site.js"></script>
+</body>
+
+</html>
