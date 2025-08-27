@@ -6,7 +6,7 @@ const authService = require('../services/auth.service');
 const HTML_ROOT = path.resolve(__dirname, '..', '..', 'public', 'html');
 
 exports.mainPage = (req, res, next) => {
-  rres.sendFile('main_page.html', { root: HTML_ROOT }, (err) => err && next(err));
+  res.sendFile('main_page.html', { root: HTML_ROOT }, (err) => err && next(err));
 };
 
 exports.loginPage = (req, res, next) => {

@@ -1,5 +1,5 @@
 // Робота з таблицею users
-const { User } = require('../models');
+const { User } = require('../models/User');
 
 // пошук користувача за email
 async function findByEmail(email) {
