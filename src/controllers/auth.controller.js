@@ -1,15 +1,16 @@
 const path = require('path');
 const authService = require('../services/auth.service');
 
-// де лежать твої HTML-файли (як раніше: /html/*.html в корені проекту)
-const HTML_ROOT = path.join(__dirname, '..', 'public', 'html');
+// const ROOT = process.cwd();                         // <-- корінь проєкту
+// const HTML_ROOT = path.join(ROOT, 'public', 'html'); // <-- public/html у корені
+const HTML_ROOT = path.resolve(__dirname, '..', '..', 'public', 'html');
 
-exports.mainPage = (req, res) => {
-  res.sendFile(path.join(HTML_ROOT, 'main_page.html'));
+exports.mainPage = (req, res, next) => {
+  rres.sendFile('main_page.html', { root: HTML_ROOT }, (err) => err && next(err));
 };
 
-exports.loginPage = (req, res) => {
-  res.sendFile(path.join(HTML_ROOT, 'login.html'));
+exports.loginPage = (req, res, next) => {
+  res.sendFile('login.html', { root: HTML_ROOT }, (err) => err && next(err));
 };
 
 exports.register = async (req, res, next) => {
@@ -48,7 +49,7 @@ exports.loginUser = async (req, res, next) => {
   } catch (e) { next(e); }
 };
 
-exports.adminPage = (req, res) => {
+exports.adminPage = (req, res, next) => {
   // якщо пройшли auth middleware — показуємо admin.html
-  res.sendFile(path.join(HTML_ROOT, 'admin.html'));
+  res.sendFile('admin.html', { root: HTML_ROOT }, (err) => err && next(err));
 };
