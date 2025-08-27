@@ -7,10 +7,10 @@ const sequelize =  new Sequelize("node_2024", "root", "Gena2022$", {
 });
 
 const User = require('./User')(sequelize);
-// const Authkey = require('./Authkey')(sequelize);
+const Authkey = require('./Authkey')(sequelize);
 
 module.exports = {
     sequelize : sequelize,
     user : User,
-    // authkey : Authkey
+    authkey : Authkey
 }

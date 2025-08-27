@@ -132,8 +132,6 @@ http.createServer(async function (req, res) {
             }
             break;
 
-
-
         default:
             const extname = String(path.extname(url)).toLocaleLowerCase();
             if (extname in mimeTypes) staticFile(res, url, extname);
