@@ -2,7 +2,7 @@
 // Модель у models/index.js має експортувати або Session, або Authkey.
 // Тут очікуємо Session. Якщо в тебе модель називається Authkey — просто
 // у models/index.js зроби: `module.exports = { ..., Session: Authkey }`
-const { Session } = require('../models/User');
+const { Session } = require('../models');
 
 // створити сесію (мультилогін — не обмежуємо кількість)
 async function createSession({ userId, token }) {

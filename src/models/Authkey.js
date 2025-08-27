@@ -1,26 +1,19 @@
-const Sequelize = require("sequelize");
+// src/models/Authkey.js
+const Sequelize = require('sequelize');
 
+module.exports = (sequelize) => {
+  const Authkey = sequelize.define('Authkey', {
+    authkey:    { type: Sequelize.STRING(44), primaryKey: true },
+    userid:     { type: Sequelize.INTEGER },
 
-module.exports = function (sequelize) {
-    return sequelize.define("Authkey", {
-        authkey: {
-            type: Sequelize.STRING(44),
-            primaryKey: true,
-        },
-        userid: {
-            type: Sequelize.INTEGER(),
-        },
-        
-        created_at:{
-            type: Sequelize.INTEGER(),
-            defaultValue: Math.floor(Date.now() / 1000)
-        },
-        updated_at:{
-            type: Sequelize.INTEGER(),
-            defaultValue: Math.floor(Date.now() / 1000)
-        },
-    }, {
-        timestamps: false,
-        tableName: 'authkey'
-    });
-}
+    created_at: { type: Sequelize.INTEGER, allowNull: false, defaultValue: Sequelize.literal('UNIX_TIMESTAMP()') },
+    updated_at: { type: Sequelize.INTEGER, allowNull: false, defaultValue: Sequelize.literal('UNIX_TIMESTAMP()') },
+  }, {
+    timestamps: false,
+    tableName: 'authkey',
+  });
+
+  Authkey.beforeUpdate((instance) => { instance.updated_at = Math.floor(Date.now() / 1000); });
+
+  return Authkey;
+};

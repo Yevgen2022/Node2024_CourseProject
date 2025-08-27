@@ -19,7 +19,7 @@ const Session = Authkey;
 
 async function initDb() {
   await sequelize.authenticate();
-  await sequelize.sync(); // ок для деву
+//   await sequelize.sync(); // ок для деву
 }
 
 module.exports = { sequelize, initDb, User, Session };
