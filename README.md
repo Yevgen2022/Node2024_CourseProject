@@ -130,3 +130,11 @@ const user = db.user;
 20. Імпортуємо const Authkey = require('./class/Authkey'); 
 у index.js
 
+21. Працюємо з файлом Authkey: створюємо static async createAuthKey (userid)
+
+22. Додаємо роут '/admin': в якому є перевірка чи користувач 
+залогований в системі а саме функції  await Authkey.checkCookie(cookies.auth);
+в яку потрібно додати перевірку існування (чи не видалений)
+
+23. 
+

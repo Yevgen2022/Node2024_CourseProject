@@ -3,6 +3,7 @@ const authkey = db.authkey;
 const randomstring = require("randomstring");
 
 module.exports = class Authkey {
+    
     static async createAuthKey (userid) {
         const authString = randomstring.generate(44);
         return await authkey.create({

@@ -6,9 +6,25 @@ const { mimeTypes } = require("./utilities/mime");
 const { staticFile } = require("./utilities/static_file");
 
 const User = require("./classes/User");
-const Authkey = require('./class/Authkey');
+const Authkey = require('./classes/Authkey');
 
 const PORT = 3500;
+
+function parseCookies(request) { 
+    const list = {};
+    const cookieHeader = request.headers?.cookie;
+    if (!cookieHeader) return list;
+
+    cookieHeader.split(`;`).forEach(function (cookie) {
+        let [name, ...rest] = cookie.split(`=`);
+        name = name?.trim();
+        if (!name) return;
+        const value = rest.join(`=`).trim();
+        if (!value) return;
+        list[name] = decodeURIComponent(value);
+    });
+    return list;
+}
 
 http.createServer(async function (req, res) {
 
@@ -72,7 +88,7 @@ http.createServer(async function (req, res) {
                 req.on('data', function (data) {
                     body += data;
                 });
-
+ 
                 req.on('end', async function () {
                     let post = qs.parse(body);
                     const user = new User(post.email, post.pass);
@@ -96,6 +112,27 @@ http.createServer(async function (req, res) {
                 });
             }
             break;
+
+        case '/admin':
+            console.log('admin');
+            cookies = parseCookies(req);
+            if (cookies.auth) {
+                let r = await Authkey.checkCookie(cookies.auth);
+                if (r) {
+                    staticFile(res, '/html/admin.html', '.html');
+                }
+                else {
+                    res.setHeader('Set-Cookie', ['auth="";max-age=-1', 'u=;max-age=0']);
+                    staticFile(res, '/html/login.html', '.html');
+                }
+            }
+            else {
+                res.setHeader('Set-Cookie', ['auth="";max-age=-1', 'u=;max-age=0']);
+                staticFile(res, '/html/login.html', '.html');
+            }
+            break;
+
+
 
         default:
             const extname = String(path.extname(url)).toLocaleLowerCase();
