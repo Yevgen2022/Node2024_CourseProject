@@ -17,6 +17,9 @@ exports.register = async (req, res, next) => {
   try {
     const { email, pass } = req.body;
     const result = await authService.register({ email, password: pass });
+
+    console.log('[RESULT /reguser]', result);    // ← ДОДАЙ
+
     if (!result.ok) {
       return res.json({ success: false, action: result.error?.message || 'create user error' });
     }
@@ -25,9 +28,16 @@ exports.register = async (req, res, next) => {
 };
 
 exports.loginUser = async (req, res, next) => {
+
+   console.log('[HIT] POST /login-user', req.body); // ← ДОДАЙ
+
   try {
     const { email, pass } = req.body;
     const result = await authService.login({ email, password: pass });
+
+     console.log('[RESULT /login-user]', result);   // ← ДОДАЙ
+    
+
     if (!result.ok) {
       return res.json({ success: false, action: 'user not found' });
     }
