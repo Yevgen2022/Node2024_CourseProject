@@ -40,7 +40,8 @@ async function login({ email, password }) {
   }
 
   const token = randomstring.generate(44);
-  const session = await createSession({ userId: user.id, token });
+  //  const session = await createSession({ userId: user.id, token });
+  await createSession({ userId: user.id, token }); // створюємо в authkey
 
   return {
     ok: true,
