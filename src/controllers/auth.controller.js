@@ -41,26 +41,11 @@ exports.register = async (req, res, next) => {
   } catch (e) { next(e); }
 };
 
-// exports.register = async (req, res, next) => {
-//   try {
-//     const { email, pass } = req.body;
-//     const result = await authService.register({ email, password: pass });
-
-//     console.log('[RESULT /reguser]', result);    // ← ДОДАЙ
-
-//     if (!result.ok) {
-//       return res.json({ success: false, action: result.error?.message || 'create user error' });
-//     }
-//     return res.json({ success: true, action: 'user was created' });
-//   } catch (e) { next(e); }
-// };
-
-
-
-
 // controllers/auth.controller.js
 exports.loginUser = async (req, res, next) => {
+
   console.log('[HIT] POST /login-user', req.body);
+
   try {
     const { email, pass } = req.body;
     if (!email || !pass) {
@@ -70,13 +55,17 @@ exports.loginUser = async (req, res, next) => {
     const result = await authService.login({ email, password: pass });
     console.log('[RESULT /login-user]', result);
 
-    if (!result.ok) {
+    // беремо токен з того місця, де він реально є
+    const authToken = result?.token || result?.session?.token;
+
+    if (!result.ok || !authToken) {
       // невірні креденшали
       return res.status(401).json({ ok: false, code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' });
     }
 
     // ставимо httpOnly cookie (без повернення її у JSON)
-    res.cookie('auth', result.token, {
+    // result.token — це унікальний токен сесії (рядок) збережений у БД
+    res.cookie('auth', authToken, {
       httpOnly: true,
       sameSite: 'lax',          // 'lax' малими
       // secure: true,          // увімкни на HTTPS
@@ -89,39 +78,6 @@ exports.loginUser = async (req, res, next) => {
     next(e);
   }
 };
-
-
-// exports.loginUser = async (req, res, next) => {
-
-//    console.log('[HIT] POST /login-user', req.body); // ← ДОДАЙ
-
-//   try {
-//     const { email, pass } = req.body;
-//     const result = await authService.login({ email, password: pass });
-
-//      console.log('[RESULT /login-user]', result);   // ← ДОДАЙ
-    
-
-//     if (!result.ok) {
-//       return res.json({ success: false, action: 'user not found' });
-//     }
-
-//     // виставляємо справжній Set-Cookie (краще за повернення в JSON)
-//     const expires = new Date(Date.now() + 7 * 24 * 3600 * 1000);
-//     res.cookie('auth', result.token, {
-//       httpOnly: true,
-//       sameSite: 'Lax',
-//       expires
-//     });
-
-//     // для сумісності з твоїм старим підходом також повернемо рядок cookie в JSON
-//     return res.json({
-//       success: true,
-//       action: 'You are logged in',
-//       cookie: `auth=${result.token}; expires=${expires.toUTCString()}; path=/`
-//     });
-//   } catch (e) { next(e); }
-// };
 
 exports.adminPage = (req, res, next) => {
   // якщо пройшли auth middleware — показуємо admin.html

@@ -82,30 +82,3 @@ module.exports = {
   listSessions,
   revokeSession,
 };
-
-
-// const { issueSession } = require('../repositories/session.repo');
-// // шлях до твого існуючого класу
-// const UserClass = require('../../classes/User');
-
-// async function register({ email, password }) {
-//   const user = new UserClass(email, password);
-//   const exists = await user.findUser();
-//   if (exists) return { ok: false, error: { code: 'EMAIL_TAKEN', message: 'user exists' } };
-
-//   const created = await user.createUser();
-//   if (!created) return { ok: false, error: { code: 'CREATE_ERR', message: 'create user error' } };
-
-//   return { ok: true, userId: created.id };
-// }
-
-// async function login({ email, password }) {
-//   const user = new UserClass(email, password);
-//   const auth = await user.authUser();
-//   if (!auth) return { ok: false };
-
-//   const { token } = await issueSession(auth.id);
-//   return { ok: true, token, userId: auth.id };
-// }
-
-// module.exports = { register, login };
