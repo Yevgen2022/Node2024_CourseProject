@@ -1,47 +1,46 @@
 const divMessage = document.querySelector('#message');
 
 document.querySelector('#form-register-user').onsubmit = async function (event) {
-	divMessage.innerHTML = '';
-	event.preventDefault();
-	const email = event.target.elements.email.value;
-	const pass = event.target.elements.password.value;
-	console.log(email, pass);
+  divMessage.innerHTML = '';
+  event.preventDefault();
 
-	const headers = new Headers();
-	headers.append("Content-Type", "application/x-www-form-urlencoded");
+  const email = event.target.elements.email.value.trim();
+  const pass  = event.target.elements.password.value;
 
-	let urlencoded = new URLSearchParams();
-	urlencoded.append("email", email);
-	urlencoded.append("pass", pass);
+  const body = new URLSearchParams();
+  body.append('email', email);
+  body.append('pass', pass);
 
-	let resp = await fetch('/reguser', {
-		method: 'POST',
-		headers: headers,
-		body: urlencoded
-	});
+  try {
+    const resp = await fetch('/reguser', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body
+    });
 
-	const result = await resp.json();
-	console.log(result);
+    // читаємо тіло ОДИН раз
+    let data = null;
+    try { data = await resp.json(); } catch (_) {}
 
-	// switch (result.action) {
-	// 	case 'user exists':
-	// 		divMessage.innerHTML = 'User exists';
-	// 		break;
-	// 	case 'user was created':
-	// 		this.reset();
-	// 		divMessage.innerHTML = 'The user has been created. <a href="/login">Login to the site.</a>';
-	// 		break;
-switch ((result.action || '').toLowerCase()) {
-  case 'user exists':
-  case 'user already exists':
-    divMessage.textContent = 'User exists';
-    break;
-  case 'user was created':
-    this.reset();
-    divMessage.innerHTML = 'The user has been created. <a href="/login">Login to the site.</a>';
-    break;
-  default:
-    divMessage.textContent = result?.action || 'Unexpected response';
+    if (!resp.ok) {
+      // помилка
+      if (data?.code === 'USER_EXISTS') {
+        divMessage.textContent = 'User exists';
+        return;
+      }
+      divMessage.textContent = data?.message || `Error ${resp.status}`;
+      return;
+    }
 
-	}
-}
+    // успіх
+    if (data?.code === 'USER_CREATED') {
+      this.reset();
+      divMessage.innerHTML = 'The user has been created. <a href="/login">Login to the site.</a>';
+    } else {
+      divMessage.textContent = 'Unexpected response';
+    }
+  } catch (err) {
+    console.error(err);
+    divMessage.textContent = 'Network/JS error';
+  }
+};
