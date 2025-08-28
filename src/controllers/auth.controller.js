@@ -13,19 +13,49 @@ exports.loginPage = (req, res, next) => {
   res.sendFile('login.html', { root: HTML_ROOT }, (err) => err && next(err));
 };
 
+
+
+// controllers/auth.controller.js
 exports.register = async (req, res, next) => {
   try {
     const { email, pass } = req.body;
+    if (!email || !pass) {
+      // некоректний запит
+      return res.status(400).json({ ok: false, code: 'BAD_REQUEST', message: 'Email and password are required' });
+    }
+
     const result = await authService.register({ email, password: pass });
 
-    console.log('[RESULT /reguser]', result);    // ← ДОДАЙ
+    if (!result.ok && result.error?.message === 'user exists') {
+      // Користувач уже існує
+      return res.status(409).json({ ok: false, code: 'USER_EXISTS', message: 'User already exists' });
+    }
 
     if (!result.ok) {
-      return res.json({ success: false, action: result.error?.message || 'create user error' });
+      // Інша помилка
+      return res.status(500).json({ ok: false, code: 'INTERNAL', message: 'Create user error' });
     }
-    return res.json({ success: true, action: 'user was created' });
+
+    // Успішно створено
+    return res.status(201).json({ ok: true, code: 'USER_CREATED' });
   } catch (e) { next(e); }
 };
+
+// exports.register = async (req, res, next) => {
+//   try {
+//     const { email, pass } = req.body;
+//     const result = await authService.register({ email, password: pass });
+
+//     console.log('[RESULT /reguser]', result);    // ← ДОДАЙ
+
+//     if (!result.ok) {
+//       return res.json({ success: false, action: result.error?.message || 'create user error' });
+//     }
+//     return res.json({ success: true, action: 'user was created' });
+//   } catch (e) { next(e); }
+// };
+
+
 
 exports.loginUser = async (req, res, next) => {
 

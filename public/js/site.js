@@ -23,15 +23,25 @@ document.querySelector('#form-register-user').onsubmit = async function (event) 
 	const result = await resp.json();
 	console.log(result);
 
-	switch (result.action) {
-		case 'user exists':
-			divMessage.innerHTML = 'User exists';
-			break;
-		case 'user was created':
-			this.reset();
-			divMessage.innerHTML = 'The user has been created. <a href="/login">Login to the site.</a>';
-			break;
-
+	// switch (result.action) {
+	// 	case 'user exists':
+	// 		divMessage.innerHTML = 'User exists';
+	// 		break;
+	// 	case 'user was created':
+	// 		this.reset();
+	// 		divMessage.innerHTML = 'The user has been created. <a href="/login">Login to the site.</a>';
+	// 		break;
+switch ((result.action || '').toLowerCase()) {
+  case 'user exists':
+  case 'user already exists':
+    divMessage.textContent = 'User exists';
+    break;
+  case 'user was created':
+    this.reset();
+    divMessage.innerHTML = 'The user has been created. <a href="/login">Login to the site.</a>';
+    break;
+  default:
+    divMessage.textContent = result?.action || 'Unexpected response';
 
 	}
 }
