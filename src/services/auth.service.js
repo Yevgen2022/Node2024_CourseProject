@@ -45,7 +45,8 @@ async function login({ email, password }) {
   return {
     ok: true,
     user: { id: user.id, email: user.email },
-    session: { id: session.id, token },
+    session: { token }, 
+    // session: { id: session.id, token },
   };
 }
 
