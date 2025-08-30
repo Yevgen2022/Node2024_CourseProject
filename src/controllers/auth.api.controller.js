@@ -23,7 +23,6 @@ exports.register = async (req, res, next) => {
 };
 
 // POST /api/login
-// (логіка така сама, як була у loginUser — лиш перенесено й перейменовано на login)
 exports.login = async (req, res, next) => {
   console.log('[HIT] POST /api/login', req.body);
   try {

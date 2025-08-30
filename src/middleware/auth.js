@@ -15,5 +15,7 @@ module.exports = async function auth(req, res, next) {
     // можна зберегти у req.userId для подальших роутів
     req.userId = rec.userid;
     next();
-  } catch (e) { next(e); }
+
+  } catch (e) { 
+    return next(e); }
 };
