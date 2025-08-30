@@ -32,15 +32,14 @@ async function findByToken(token) {
 async function listByUser(userId) {
   return Session.findAll({
     where: { userid: userId },
-    order: [['createdAt', 'DESC']],
+    order: [['created_at', 'DESC']],
     attributes: ['authkey', 'userid', 'created_at'],  //дописав
   });
 }
 
 // видалити конкретну сесію користувача
-async function deleteById(sessionId, userId) {
-  // return Session.destroy({ where: { id: sessionId, userid: userId } });
-  return Session.destroy({ where: { authkey: sessionId, userid: userId } });
+async function deleteById(token, userId) {
+  return Session.destroy({ where: { authkey: token, userid: userId } });
 }
 
 // (опційно) видалити за токеном

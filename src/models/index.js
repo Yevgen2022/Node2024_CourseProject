@@ -4,10 +4,10 @@ const config = require('../config');
 
 const sequelize = new Sequelize(
   config.db.database, config.db.username, config.db.password, {
-    host: config.db.host,
-    dialect: config.db.dialect,
-    logging: config.db.logging,
-  }
+  host: config.db.host,
+  dialect: config.db.dialect,
+  logging: config.db.logging,
+}
 );
 
 // підключаємо файли моделей
@@ -19,7 +19,7 @@ const Session = Authkey;
 
 async function initDb() {
   await sequelize.authenticate();
-//   await sequelize.sync(); // ок для деву
+  //   await sequelize.sync(); // ок для деву
 }
 
 module.exports = { sequelize, initDb, User, Session };

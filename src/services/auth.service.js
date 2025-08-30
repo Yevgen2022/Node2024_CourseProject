@@ -67,12 +67,12 @@ async function meFromCookie(token) {
 // Список сесій користувача (мультилогін)
 async function listSessions(userId) {
   const items = await listByUser(userId);
-  return items.map(s => ({ id: s.id, createdAt: s.createdAt }));
+  return items.map(s => ({ id: s.authkey, createdAt: s.created_at }));
 }
 
 // Ревок конкретної сесії користувача
-async function revokeSession(sessionId, userId) {
-  const n = await deleteSessionById(sessionId, userId);
+async function revokeSession(token, userId) {
+  const n = await deleteSessionById(token, userId);
   if (!n) return { ok: false, error: { code: 'SESSION_NOT_FOUND', message: 'Session not found' } };
   return { ok: true };
 }
