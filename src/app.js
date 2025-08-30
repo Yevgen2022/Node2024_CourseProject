@@ -6,11 +6,17 @@ const cookieParser = require('cookie-parser');
 // const routes = require('./routes/auth.routes');
 const pagesRoutes = require('./routes/pages.routes');
 const apiRoutes   = require('./routes/api.routes');
-
 const errorHandler = require('./middleware/error');
 
 const app = express();
-const ROOT = process.cwd();
+// const ROOT = process.cwd();
+
+
+//Стабільний корінь відносно файлу app.js, а не від CWD
+const APP_ROOT = path.resolve(__dirname, '..');
+// Збережемо в налаштуваннях Express, щоб діставати у будь-якому місці
+app.set('ROOT', APP_ROOT);
+
 
 
 /*=====================================
@@ -46,7 +52,7 @@ app.use(cookieParser());
 
 // Віддаємо статичні файли з папки /public з кореня сайту.
 // Приклад: /css/site.css, /js/login.js, /images/logo.png
-app.use(express.static(path.join(ROOT, 'public')));      
+app.use(express.static(path.join(APP_ROOT, 'public')));      
 
 
 // CORS вмикаємо лише для /api (за потреби)
@@ -60,7 +66,7 @@ app.use(express.static(path.join(ROOT, 'public')));
 // Додатковий "аліас" для тих самих файлів під префіксом /static
 // Тобто /static/css/site.css = public/css/site.css
 // (Не обов’язково мати обидва; буде працювати і так, і так.)
-app.use('/static', express.static(path.join(ROOT, 'public'))); 
+app.use('/static', express.static(path.join(APP_ROOT, 'public'))); 
 
 
 /* =========================
