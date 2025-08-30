@@ -1,8 +1,12 @@
 const path = require('path');
 const express = require('express');
 const cookieParser = require('cookie-parser');
+// const cors = require('cors');
 
-const routes = require('./routes/auth.routes');
+// const routes = require('./routes/auth.routes');
+const pagesRoutes = require('./routes/pages.routes');
+const apiRoutes   = require('./routes/api.routes');
+
 const errorHandler = require('./middleware/error');
 
 const app = express();
@@ -44,6 +48,15 @@ app.use(cookieParser());
 // Приклад: /css/site.css, /js/login.js, /images/logo.png
 app.use(express.static(path.join(ROOT, 'public')));      
 
+
+// CORS вмикаємо лише для /api (за потреби)
+// app.use('/api', cors({
+//   origin: 'http://localhost:3000', // ваш фронтенд, якщо окремий
+//   credentials: true
+// }));
+
+
+
 // Додатковий "аліас" для тих самих файлів під префіксом /static
 // Тобто /static/css/site.css = public/css/site.css
 // (Не обов’язково мати обидва; буде працювати і так, і так.)
@@ -57,7 +70,15 @@ app.use('/static', express.static(path.join(ROOT, 'public')));
 // Підключаємо усі ваші маршрути на кореневий шлях.
 // ВАЖЛИВО: middleware аутентифікації (який читає cookie 'auth')
 // має стояти ДО цього рядка, якщо він у вас є.
-app.use('/', routes);
+// app.use('/', routes);
+
+
+
+// сторінки без префікса
+app.use('/', pagesRoutes);
+
+// API під префіксом /api
+app.use('/api', apiRoutes);
 
 
 

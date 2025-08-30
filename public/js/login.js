@@ -13,7 +13,8 @@ form.addEventListener('submit', async (e) => {
   body.append('pass', pass);
 
   try {
-    const resp = await fetch('/login-user', {
+    const resp = await fetch('/api/login', {
+    // const resp = await fetch('/login-user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body,

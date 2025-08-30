@@ -12,7 +12,7 @@ document.querySelector('#form-register-user').onsubmit = async function (event) 
   body.append('pass', pass);
 
   try {
-    const resp = await fetch('/reguser', {
+    const resp = await fetch('/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body
