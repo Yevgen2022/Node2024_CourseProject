@@ -5,8 +5,6 @@
 const { Session } = require('../models');
 
 
-
-
 // // створити сесію (мультилогін — не обмежуємо кількість)
 // async function createSession({ userId, token }) {
 //   // у твоїй БД колонка називається 'userid', не 'userId'

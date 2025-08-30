@@ -11,13 +11,19 @@ async function createUser({ email, passwordHash }) {
   return User.create({ email, password: passwordHash });
 }
 
-// (опційно) пошук за id
-async function findById(id) {
-  return User.findByPk(id);
+// “безпечний” пошук без пароля — для віддачі назовні
+// async function findById(id) {
+//   return User.findByPk(id);
+// }
+
+async function findByIdSafe(id) {
+  return User.findByPk(id, {
+    attributes: ['id', 'email', 'name', 'createdAt', 'updatedAt']
+  });
 }
 
 module.exports = {
   findByEmail,
-  findById,
+  findByIdSafe,
   createUser,
 };
