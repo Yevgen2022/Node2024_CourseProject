@@ -1,147 +1,309 @@
-  
-  1. Create structure
-  
-  2. npm install --save-dev nodemon
+Auth Project — Cookie-based Authentication on Node/Express
 
-  3. npm i sequelize , npm i mysql2, npm i randomstring
+Server app built with Express + Sequelize using stateful authentication via httpOnly cookies. Sessions are stored in the database (table authkey). The app cleanly separates HTML pages from JSON API (/api/*), uses an auth middleware, and protects the /admin page.
 
-  4. Create User class
+Project Goals
 
-  5. Create mime.js and static_file.js and added into index.js
+Demonstrate a production-like cookie + DB session auth flow (no OAuth/JWT).
 
-  6. Const PORT and create server
+Enforce clear separation of concerns: routing, controllers, middleware, services, repositories, models.
 
-  7. Atention: in server will better take :
+Provide a solid base for further hardening (session TTL, “Remember me”, CSRF, rate-limit, Docker, tests).
 
-  const { pathname } = new URL(req.url, `http://${req.headers.host}`);
-  const ext = path.extname(pathname).toLowerCase();
+Tech Stack
 
-  for example:
+Runtime: Node.js (Express)
 
-   const http = require('http');
-   const path = require('path');
+ORM: Sequelize
 
-   http.createServer((req, res) => {
-   const { pathname } = new URL(req.url, `http://${req.headers.host}`);
-   console.log(pathname);
+DB: MySQL/MariaDB/Postgres (dialect via config)
 
-  switch (pathname) {
-    case '/':
-      // віддаємо головну
-      staticFile(res, '/html/main_page.html', '.html');
-      break;
+Middleware: cookie-parser, cors, express.json, express.urlencoded
 
-    default: {
-      const ext = path.extname(pathname).toLowerCase();
-      if (mimeTypes[ext]) {
-        staticFile(res, pathname, ext);
-      } else {
-        res.statusCode = 404;
-        res.end('Not Found');
-      }
-    }
-  }
-}).listen(PORT);
+Sessions: custom table authkey (exported as model alias Session)
+
+Views: static HTML from public/html (no templating)
+
+Client: minimal JS (fetch) for login
+
+Architecture & Request Flow
+server.js → app.js
+  ├─ global middleware: json, urlencoded, cookieParser
+  ├─ static: /public (+ /static alias)
+  ├─ CORS: only for /api (if needed)
+  ├─ pages router:    '/', '/login', '/admin' (HTML; /admin protected)
+  ├─ api router:      '/api/*'       (JSON: register, login, logout)
+  ├─ 404 JSON
+  └─ error handler
 
 
-8. Proposition: The modern way without querystring is
+Authentication (stateful):
 
-const http = require('http');
+POST /api/login → validate password → create a row in authkey → Set-Cookie: auth=... (httpOnly).
 
-http.createServer((req, res) => {
-  const url = new URL(req.url, `http://${req.headers.host}`);
-  const pathname = url.pathname;
-  const params = Object.fromEntries(url.searchParams); // { q: 'test', page: '2' }
+For protected routes → auth middleware reads req.cookies.auth, checks DB → either next() or 401.
 
-  // ...твоя логіка
-  res.end('OK');
-}).listen(PORT);
+POST /api/logout → delete row in authkey + clear cookie.
 
-9. Added '/reguser' route
+Project Structure (short)
+src/
+  app.js
+  server.js
+  config/                 # DB/port/logging settings
+  controllers/
+    pages.controller.js       # HTML: '/', '/login', '/admin'
+    auth.api.controller.js    # JSON: /api/register, /api/login, /api/logout
+  middleware/
+    auth.js                   # cookie → DB session check
+    error.js                  # centralized error handler
+  repositories/
+    user.repo.js              # users table
+    session.repo.js           # authkey (Session alias)
+  services/
+    auth.service.js           # business logic (register/login/me/sessions)
+  models/
+    index.js                  # sequelize instance, exports User & Session alias
+    User.js
+    Authkey.js                # table 'authkey' (exported as Session)
+public/
+  html/
+    main_page.html
+    login.html
+    admin.html
+  js/
+    login.js                  # fetch('/api/login', ...)
+  css/ ...
 
-10. Create class User with constructor and diferent fields
+Setup & Run
+Prereqs
 
-module.exports = class User{
-    constructor (email, password){
-        this.email = email;
-        this.password = password;
+Node.js 18+
 
-        this.salt = '@Da!@$7d';
-    }
-}
+A database (MySQL/MariaDB/Postgres)
 
-11. Take information from POST 
+.env example
+PORT=3500
+DB_HOST=localhost
+DB_NAME=auth_project
+DB_USER=root
+DB_PASS=secret
+DB_DIALECT=mysql       # or postgres/mariadb
+DB_LOGGING=false
+PASS_SALT=@Da!@$7d     # salt for SHA-256 (training/demo)
+CORS_ORIGIN=http://localhost:3000  # if front-end runs on a different origin
 
-if (req.method == 'POST') {
-                let body = '';
-                req.on('data', function (data) {
-                    body += data;
-                });
 
-                req.on('end', async function () {
-                    let post = qs.parse(body);
-                    const user = new User(post.email, post.pass);
-                    if (!(await user.findUser())) {
-                        let result = await user.createUser();
-                        if (result) {
-                            res.end(JSON.stringify({
-                                "success": true,
-                                "action": "user was created"
-                            }))
-                        }
-                        else {
-                            res.end(JSON.stringify({
-                                "success": false,
-                                "action": "create user error"
-                            }))
-                        }
-                    }
-                    else {
-                        res.end(JSON.stringify({
-                            "success": false,
-                            "action": "user exists"
-                        }))
-                    }
-                });
-            }
+Config is read in models/index.js / config.
 
-12.  We connect class User into index.js
-const User = require ("./classes/User");
+Commands
+npm install
+node src/server.js            # or: npm run dev
 
-13. Прописуємо метод findUser (з ORM Sequelize)
- та додаємо цей метод до роута case '/reguser':
 
-14. Підключаємо Sequelize
-const db = require('../db');
-const user = db.user; 
+server.js calls initDb() to verify DB connectivity before listen.
 
-15. Створюємо метод async createUser () в класі User
+Database Schema (matches the code)
+users
 
-16. Підключаємо const crypto = require('crypto');в User.js
-для пароля
+id (PK, int)
 
-17. Create router /login with page
+email (varchar, UNIQUE, not null)
 
-18. Create function async authUser () in User class
+password (varchar) — stores the hash
 
-19. Create file Authkey.js in classes у якому буде метод який 
-прописує що користувач залогувався
+createdAt / updatedAt — if timestamps enabled for the user model
 
-20. Імпортуємо const Authkey = require('./class/Authkey'); 
-у index.js
+authkey (model file Authkey.js, exported as Session)
 
-21. Працюємо з файлом Authkey: створюємо static async createAuthKey (userid)
+authkey (PK, varchar(44)) — session token string
 
-22. Додаємо роут '/admin': в якому є перевірка чи користувач 
-залогований в системі а саме функції  await Authkey.checkCookie(cookies.auth);
-в яку потрібно додати перевірку існування (чи не видалений)
+userid (int, FK → users.id)
 
-PS. Файл liogin.js створює кукі який повертається в браузер
+created_at (int, UNIX seconds)
 
-23. У роуті /admin можна не показувати staticFile в кінці в else а
-зробити редірект, але викладач сказав що Гугл хром кешує такі речі і
-це погано відображається на роботі
+updated_at (int, UNIX seconds)
 
-24. PS. Замість роутів можна створити АРІ-систему а саме створити  URL
-та отримувати з них GET, POST дані і відповідати так як хочемо клієнту
+timestamps: false (a beforeUpdate hook updates updated_at)
 
+Endpoints
+HTML (Pages)
+Method	Path	Description	Auth
+GET	/	Home	—
+GET	/login	Login form	—
+GET	/admin	Protected page (HTML)	✓ auth
+API (JSON)
+Method	Path	Body	Success Response	Errors
+POST	/api/register	email, pass (json/urlencoded)	201 { ok:true, code:'USER_CREATED' }	400 BAD_REQUEST, 409 USER_EXISTS, 500 INTERNAL
+POST	/api/login	email, pass (json/urlencoded)	200 { ok:true, code:'LOGGED_IN' } + Set-Cookie: auth=...	400 BAD_REQUEST, 401 INVALID_CREDENTIALS
+POST	/api/logout	—	200 { ok:true, code:'LOGGED_OUT' } (if implemented)	401 UNAUTHENTICATED (when applicable)
+
+Cookie: auth (httpOnly, SameSite=Lax, optional maxAge).
+Cross-origin front-end: use credentials:'include' in fetch, and enable CORS only for /api.
+
+curl Samples
+# Register
+curl -i -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "email=test@example.com&pass=123" \
+  http://localhost:3500/api/register
+
+# Login (stores cookie in cookies.txt)
+curl -i -c cookies.txt -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "email=test@example.com&pass=123" \
+  http://localhost:3500/api/login
+
+# Access /admin with cookie
+curl -i -b cookies.txt http://localhost:3500/admin
+
+# Logout
+curl -i -b cookies.txt -X POST http://localhost:3500/api/logout
+
+Key Components
+middleware/auth.js
+
+Reads req.cookies.auth.
+
+DB lookup with findByToken(token):
+
+not found → res.clearCookie('auth') + 401 UNAUTHENTICATED (for HTML you can redirect to /login);
+
+found → req.userId = rec.userid, next().
+
+services/auth.service.js
+
+register: uniqueness check, SHA-256(salt+password), create user.
+
+login: password validation, token generation (length 44), createSession({ userid, token }).
+
+meFromCookie: via token → session → userId.
+
+(Optional) listSessions / revokeSession for multi-login.
+
+repositories/*
+
+user.repo: findByEmail, createUser, findById.
+
+session.repo: createSession, findByToken, listByUser, deleteById(token, userId), deleteByToken.
+
+Security Notes (realistic expectations)
+
+Passwords currently use SHA-256 + salt (for simplicity/demo).
+Roadmap: switch to bcrypt/argon2 (slow hashes), add login rate-limit, helmet, optional session expiresAt.
+
+Cookies:
+
+same-origin → SameSite=Lax works well;
+
+cross-origin → SameSite=None; Secure (HTTPS required) + credentials:'include' on the client.
+
+For the admin HTML page, consider Cache-Control: no-store (can be added later).
+
+Development & Debugging
+
+Helpful logs:
+
+[LOGIN] email → OK/FAIL
+
+[AUTH] url, hasCookie, tokenFound
+
+Error handler returns JSON for /api/*.
+
+404 is JSON: { error: { code:'NOT_FOUND', ... } }.
+
+Roadmap (easy next steps)
+
+Migrate passwords to bcrypt/argon2.
+
+Add expiresAt to sessions + auto-cleanup of expired rows.
+
+/api/me to return the profile by cookie.
+
+UI for multi-login (list sessions + revoke).
+
+helmet, rate-limit for /api/login.
+
+Dockerfile + docker-compose (app + db), GitHub Actions (lint/test).
+
+Integration tests (Jest + supertest) for /api/login and the auth middleware.
+
+Screenshots (optional)
+
+public/html/login.html — login form
+
+public/html/admin.html — protected page
+
+
+
+
+
+                          The second option
+
+                          Auth Project — Cookie-based Auth (Node/Express)
+
+Production-like stateful auth without JWT: httpOnly cookie + DB session. Separate HTML and API, auth middleware, protected /admin.
+
+Stack
+
+Node.js (Express), Sequelize (MySQL/Postgres)
+
+Middleware: cookie-parser, cors, express.json, express.urlencoded
+
+Static HTML (no templating), client login via fetch
+
+Run
+npm i
+cp .env.example .env    # PORT, DB_*, PASS_SALT, CORS_ORIGIN (if needed)
+node src/server.js
+
+How it works
+
+POST /api/login: validate password → create row in authkey → Set-Cookie: auth=... (httpOnly).
+
+Protected routes: auth middleware reads cookie, checks DB → next() or 401.
+
+POST /api/logout: delete session row + clear cookie.
+
+Routes
+
+Pages
+
+GET / — Home
+
+GET /login — Login form
+
+GET /admin — Protected page (requires cookie)
+
+API
+
+POST /api/register → 201 { ok:true, code:'USER_CREATED' }
+
+POST /api/login → 200 { ok:true, code:'LOGGED_IN' } + cookie
+
+POST /api/logout → 200 { ok:true, code:'LOGGED_OUT' }
+
+Project layout
+
+src/app.js (middleware, static, routers) • src/server.js (boot) • controllers/ (pages/api) • middleware/auth.js • services/auth.service.js • repositories/ (user/session) • models/ (User, Authkey→Session) • public/html|js|css
+
+Notes
+
+Passwords: currently SHA-256 + salt (demo).
+
+Cookies: same-origin → SameSite=Lax; cross-origin → SameSite=None; Secure + credentials:'include'.
+
+Suggested next steps: bcrypt/argon2, session TTL, /api/me, helmet, rate-limit, Docker, tests.
+
+# .env.example
+PORT=3500
+
+DB_HOST=localhost
+DB_NAME=auth_project
+DB_USER=root
+DB_PASS=secret
+DB_DIALECT=mysql        # or: postgres | mariadb
+DB_LOGGING=false
+
+# Demo salt for SHA-256 (training)
+PASS_SALT=@Da!@$7d
+
+# If frontend runs on a different origin (uncomment/adjust as needed)
+# CORS_ORIGIN=http://localhost:3000
