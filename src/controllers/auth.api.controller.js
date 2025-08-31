@@ -1,4 +1,5 @@
 const authService = require('../services/auth.service');
+const cookieOptions = require('../utils/cookieOptions');   
 
 // POST /api/register
 exports.register = async (req, res, next) => {
@@ -48,5 +49,24 @@ exports.login = async (req, res, next) => {
     });
 
     return res.status(200).json({ ok: true, code: 'LOGGED_IN' });
+  } catch (e) { next(e); }
+};
+
+
+//POST /api/logout
+exports.logout = async (req, res, next) => {
+  try {
+    const token = req.cookies?.auth;         // синхронно
+    console.log('[logout] token:', token);
+
+    if (token) {
+      // якщо у тебе є "м'який" attach, можна передати req.userId; інакше видалимо по токену
+      await authService.revokeSession(token, req.userId ?? null);
+    }
+
+    // чистимо cookie в будь-якому випадку (ідемпотентно)
+    res.clearCookie('auth', cookieOptions());
+
+    return res.status(200).json({ ok: true });
   } catch (e) { next(e); }
 };

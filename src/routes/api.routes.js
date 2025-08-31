@@ -5,8 +5,7 @@ const auth = require('../middleware/auth');
 // публічні API
 router.post('/register', api.register);
 router.post('/login',    api.login);
+router.post('/logout', api.logout);
 
-// захищені API (приклади)
-// router.post('/logout', auth, api.logout);
 
 module.exports = router;

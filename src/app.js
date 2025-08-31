@@ -83,6 +83,12 @@ app.use('/static', express.static(path.join(APP_ROOT, 'public')));
 // сторінки без префікса
 app.use('/', pagesRoutes);
 
+
+// app.use((req, res, next) => {
+//   console.log('[HIT]', req.method, req.originalUrl);
+//   next();
+// });
+
 // API під префіксом /api
 app.use('/api', apiRoutes);
 
