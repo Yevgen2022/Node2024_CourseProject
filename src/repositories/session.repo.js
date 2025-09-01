@@ -22,13 +22,13 @@ async function createSession({ userId, token, expiresAtSec }) {
   });
 }
 
+
 // знайти сесію по токену (для перевірки cookie)
 // async function findByToken(token) {
 //   return Session.findOne({ where: { authkey: token } });
 // }
 async function findByToken(token) {
   const row = await Session.findOne({ where: { authkey: token }, raw: true });
-  console.log('[repo] findByToken ->', row); // має показати об’єкт або null
   return row;
 }
 

@@ -1,5 +1,6 @@
 const authService = require('../services/auth.service');
 const cookieOptions = require('../utils/cookieOptions');
+const cfg = require('../config');
 
 // POST /api/register
 exports.register = async (req, res, next) => {
@@ -23,61 +24,32 @@ exports.register = async (req, res, next) => {
   } catch (e) { next(e); }
 };
 
+
 // POST /api/login
-// exports.login = async (req, res, next) => {
-//   console.log('[HIT] POST /api/login', req.body);
-//   try {
-//     const { email, pass } = req.body;
-//     if (!email || !pass) {
-//       return res.status(400).json({ ok: false, code: 'BAD_REQUEST', message: 'Email and password are required' });
-//     }
-
-//     const result = await authService.login({ email, password: pass });
-//     console.log('[RESULT /api/login]', result);
-
-//     const authToken = result?.token || result?.session?.token;
-//     if (!result.ok || !authToken) {
-//       return res.status(401).json({ ok: false, code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' });
-//     }
-
-//     // залишаю вашу поточну cookie-конфігурацію з maxAge на 7 днів
-//     res.cookie('auth', authToken, {
-//       httpOnly: true,
-//       sameSite: 'lax',          // у проді крос-сайт → 'none' + secure: true
-//       // secure: true,          // вмикайте на HTTPS
-//       maxAge: 7 * 24 * 3600 * 1000
-//     });
-
-//     return res.status(200).json({ ok: true, code: 'LOGGED_IN' });
-//   } catch (e) { next(e); }
-// };
-
 exports.login = async (req, res, next) => {
   try {
     const email = String(req.body?.email || '').trim();
     const password = String(req.body?.password ?? req.body?.pass ?? '').trim();
-    const oldToken = req.cookies?.auth || null;
+    const oldToken = req.cookies?.[cfg.security.cookieName] || null;
 
     if (!email || !password) {
       return res.status(400).json({ ok: false, code: 'BAD_REQUEST', error: 'Email and password are required' });
     }
 
     const result = await authService.login({ email, password, oldToken });
-    if (!result.ok) {
-      return res.status(401).json(result); // напр. { ok:false, code:'INVALID_CREDENTIALS' }
-    }
+    if (!result.ok) return res.status(401).json(result);
 
-    const exp = result.session.expires_at * 1000; // одна маленька конвертація в Date
+    const expiresDate = new Date(result.session.expires_at * 1000);
 
     return res
       .status(200)
 
-      .cookie('auth', result.session.token, {
+      .cookie(cfg.security.cookieName, result.session.token, {
         httpOnly: true,
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: String(cfg.security.cookieSameSite || 'lax').toLowerCase(), // 'lax' | 'strict' | 'none'
+        secure: cfg.security.cookieSecure ?? (cfg.env === 'production'),
         path: '/',
-        expires: exp
+        expires: expiresDate, 
       })
 
       .json({ ok: true, code: 'LOGGED_IN' });
@@ -89,12 +61,11 @@ exports.login = async (req, res, next) => {
 
 
 
-
 //POST /api/logout
 exports.logout = async (req, res, next) => {
   try {
     const token = req.cookies?.auth;         // синхронно
-    console.log('[logout] token:', token);
+    console.log('[logout] info:', req.cookie);
 
     if (token) {
       // якщо у тебе є "м'який" attach, можна передати req.userId; інакше видалимо по токену

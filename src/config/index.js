@@ -7,8 +7,8 @@ module.exports = {
   security: {
     cookieName: process.env.AUTH_COOKIE || 'auth',
     cookieSecure: process.env.COOKIE_SECURE === 'true',
-    cookieSameSite: process.env.COOKIE_SAMESITE || 'Lax',
-    sessionTtlDays: Number(process.env.SESSION_TTL_DAYS || 7200), //2 hours default
+    cookieSameSite: (process.env.COOKIE_SAMESITE || 'lax').toLowerCase(),
+    sessionTtlSec: Number(process.env.SESSION_TTL_SEC || 7200), //2 hours default
     passSalt: process.env.PASS_SALT || '@Da!@$7d'
   },
   db: {

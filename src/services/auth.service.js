@@ -64,9 +64,6 @@ async function login({ email, password, oldToken = null }) {
 
 
 
-
-
-
 // Отримати поточного користувача по cookie токену
 async function meFromCookie(token) {
   const session = await findByToken(token);
