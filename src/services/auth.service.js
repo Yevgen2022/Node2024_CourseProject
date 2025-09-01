@@ -1,4 +1,4 @@
-// Бізнес-логіка: реєстрація / логін / me / мультилогін (список/ревок)
+//intermediate link between the controller and the repository
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const cfg = require('../config');
@@ -15,7 +15,7 @@ const {
 
 async function register({ email, password }) {
 
-  const ROUNDS = Number(process.env.BCRYPT_ROUNDS || 12); // 10–12 для дев, 12–14 для прод
+  const ROUNDS = Number(process.env.BCRYPT_ROUNDS || 12); // 10–12 for dev, 12–14 for prod
   const emailNorm = String(email).trim().toLowerCase();
 
   const existing = await findByEmail(emailNorm);
@@ -64,7 +64,6 @@ async function login({ email, password, oldToken = null }) {
 
 ///////////////////////////////////////////////////////////////////////////
 
-// Ревок конкретної сесії користувача
 async function revokeSession(token) {
   const n = await deleteSessionByToken(token);
   if (n === 0) {

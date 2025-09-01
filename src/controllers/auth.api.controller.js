@@ -89,7 +89,7 @@ exports.logout = async (req, res, next) => {
 
     return res.status(204).end();
   } catch (e) {
-    
+
     res.clearCookie('auth', opts);
 
     return res.status(500).json({
