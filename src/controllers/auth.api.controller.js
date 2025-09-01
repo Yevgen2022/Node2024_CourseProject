@@ -85,16 +85,13 @@ exports.logout = async (req, res, next) => {
       await authService.revokeSession(token);
     }
 
-    // Чистимо куку у будь-якому разі
     res.clearCookie('auth', opts);
 
-    // Успіх без тіла
     return res.status(204).end();
   } catch (e) {
-    // Все одно чистимо куку на клієнті
+    
     res.clearCookie('auth', opts);
 
-    // Сигналізуємо про збій сервера
     return res.status(500).json({
       ok: false,
       error: { code: 'INTERNAL', message: 'Logout failed' },

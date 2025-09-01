@@ -46,7 +46,7 @@ async function deleteById(token, userId) {
   return Session.destroy({ where: { authkey: token, userid: userId } });
 }
 
-// (опційно) видалити за токеном
+// видалити за токеном
 async function deleteSessionByToken(token) {
   return Session.destroy({ where: { authkey: token } });
 }

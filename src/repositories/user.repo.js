@@ -3,7 +3,11 @@ const { User } = require('../models');
 
 // пошук користувача за email
 async function findByEmail(email) {
-  return User.findOne({ where: { email } });
+  const emailNorm = String(email).trim().toLowerCase();
+  return User.findOne({
+    where: { email: emailNorm },
+    attributes: ['id', 'email', 'passwordHash'],
+  });
 }
 
 // створення користувача (passwordHash зберігаємо у колонку 'password')
