@@ -40,6 +40,7 @@ form.addEventListener('submit', async (e) => {
     // Успіх
     if (data?.code === 'LOGGED_IN' || data?.action === 'You are logged in') {
       msg.textContent = 'You are logged in';
+      console.log(data);
       // За потреби: window.location.href = '/admin';
       return;
     }

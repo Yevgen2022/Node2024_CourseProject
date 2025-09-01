@@ -28,28 +28,69 @@ async function register({ email, password }) {
   return { ok: true, user: { id: user.id, email: user.email } };
 }
 
-// Логін + створення сесії (мультилогін дозволений)
-async function login({ email, password }) {
+// // Логін + створення сесії (мультилогін дозволений)
+// async function login({ email, password }) {
+//   const user = await findByEmail(email);
+//   if (!user) {
+//     return { ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email or password is incorrect' } };
+//   }
+//   const incomingHash = hashPassword(password);
+//   if (incomingHash !== user.password) {
+//     return { ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email or password is incorrect' } };
+//   }
+
+//   const token = randomstring.generate(44);
+//   //  const session = await createSession({ userId: user.id, token });
+//   await createSession({ userId: user.id, token }); // створюємо в authkey
+
+//   return {
+//     ok: true,
+//     user: { id: user.id, email: user.email },
+//     session: { token }, 
+//     // session: { id: session.id, token },
+//   };
+// }
+
+async function login({ email, password, oldToken = null }) {
   const user = await findByEmail(email);
   if (!user) {
     return { ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email or password is incorrect' } };
   }
+
   const incomingHash = hashPassword(password);
   if (incomingHash !== user.password) {
     return { ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email or password is incorrect' } };
   }
 
-  const token = randomstring.generate(44);
-  //  const session = await createSession({ userId: user.id, token });
-  await createSession({ userId: user.id, token }); // створюємо в authkey
+  const newToken = randomstring.generate(44);
+  
+  // якщо є стара cookie — спробуємо «перезаписати» саме цю сесію
+  if (oldToken) {
+    const prev = await findByToken(oldToken);         // { authkey, userid, ... } або null
+    if (prev && prev.userid === user.id) {
+      // це той самий користувач і той самий пристрій → видаляємо старий рядок і створюємо новий
+      await deleteByToken(oldToken);                  // очікуємо delete count = 1
+      await createSession({ userId: user.id, token: newToken });
+    } else {
+      // стара cookie не валідна/чужа → просто створюємо нову сесію (інші пристрої не чіпаємо)
+      await createSession({ userId: user.id, token: newToken });
+    }
+  } else {
+    // cookie не було → звичайне створення нової сесії
+    await createSession({ userId: user.id, token: newToken });
+  }
 
   return {
     ok: true,
     user: { id: user.id, email: user.email },
-    session: { token }, 
-    // session: { id: session.id, token },
+    session: { token: newToken, action: oldToken ? 'replaced-or-created' : 'created' },
   };
 }
+
+
+
+
+
 
 // Отримати поточного користувача по cookie токену
 async function meFromCookie(token) {

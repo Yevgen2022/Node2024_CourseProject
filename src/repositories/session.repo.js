@@ -24,8 +24,13 @@ async function createSession({ userId, token }) {
 }
 
 // знайти сесію по токену (для перевірки cookie)
+// async function findByToken(token) {
+//   return Session.findOne({ where: { authkey: token } });
+// }
 async function findByToken(token) {
-  return Session.findOne({ where: { authkey: token } });
+  const row = await Session.findOne({ where: { authkey: token }, raw: true });
+  console.log('[repo] findByToken ->', row); // має показати об’єкт або null
+  return row;
 }
 
 // список усіх сесій користувача (для мультилогіну)
@@ -47,10 +52,37 @@ async function deleteByToken(token) {
   return Session.destroy({ where: { authkey: token } });
 }
 
+
+async function replaceSessionForDevice({ userId, oldToken, newToken, now = nowUnix() }) {
+  if (!oldToken) {
+    await createSession({ userId, token: newToken, now });
+    return { action: 'created' };
+  }
+
+  const prev = await findByToken(oldToken);
+  if (!prev || prev.userid !== userId) {
+    await createSession({ userId, token: newToken, now });
+    return { action: 'created' };
+  }
+
+  // same device (та сама cookie), той самий користувач → замінюємо рядок
+  return await sequelize.transaction(async (t) => {
+    await Session.destroy({ where: { authkey: oldToken }, transaction: t });
+    await Session.create({
+      authkey: newToken,
+      userid: userId,
+      created_at: now,
+      updated_at: now,
+    }, { transaction: t });
+    return { action: 'replaced' };
+  });
+}
+
 module.exports = {
   createSession,
   findByToken,
   listByUser,
   deleteById,   // залишили сумісність (приймає token)
   deleteByToken,
+  replaceSessionForDevice,
 };
