@@ -63,6 +63,27 @@ async function login({ email, password, oldToken = null }) {
 
 ///////////////////////////////////////////////////////////////////////////
 
+
+
+// Отримати поточного користувача по cookie токену
+async function meFromCookie(token) {
+  const session = await findByToken(token);
+  if (!session) {
+    return { ok: false, error: { code: 'UNAUTHENTICATED', message: 'Session not found' } };
+  }
+  // Якщо в моделі Session є асоціація belongsTo(User), можна так:
+  const user = session.User ? session.User : (await session.getUser?.());
+  // Якщо асоціації ще немає — збережи userId в самій сесії або додай зв’язок у models/index.js
+  const userId = user?.id || session.userid;
+  return { ok: true, userId };
+}
+
+// Список сесій користувача (мультилогін)
+async function listSessions(userId) {
+  const items = await listByUser(userId);
+  return items.map(s => ({ id: s.authkey, createdAt: s.created_at }));
+}
+
 // Ревок конкретної сесії користувача
 async function revokeSession(token) {
   const n = await deleteSessionByToken(token);

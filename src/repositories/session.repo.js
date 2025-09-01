@@ -47,7 +47,7 @@ async function deleteById(token, userId) {
 }
 
 // (опційно) видалити за токеном
-async function deleteByToken(token) {
+async function deleteSessionByToken(token) {
   return Session.destroy({ where: { authkey: token } });
 }
 
@@ -82,6 +82,6 @@ module.exports = {
   findByToken,
   listByUser,
   deleteById,   // залишили сумісність (приймає token)
-  deleteByToken,
+  deleteSessionByToken,
   replaceSessionForDevice,
 };

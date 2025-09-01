@@ -2,22 +2,34 @@ const authService = require('../services/auth.service');
 const cookieOptions = require('../utils/cookieOptions');
 const cfg = require('../config');
 
-// POST /api/register
+
+
+// POST /api/register. //////////////////////////////////////////////
 exports.register = async (req, res, next) => {
   try {
     const { email, pass } = req.body;
+
     if (!email || !pass) {
-      return res.status(400).json({ ok: false, code: 'BAD_REQUEST', message: 'Email and password are required' });
+      return res.status(400).json({
+        ok: false, code: 'BAD_REQUEST',
+        message: 'Email and password are required'
+      });
     }
 
     const result = await authService.register({ email, password: pass });
 
     if (!result.ok && result.error?.message === 'user exists') {
-      return res.status(409).json({ ok: false, code: 'USER_EXISTS', message: 'User already exists' });
+      return res.status(409).json({
+        ok: false, code: 'USER_EXISTS',
+        message: 'User already exists'
+      });
     }
 
     if (!result.ok) {
-      return res.status(500).json({ ok: false, code: 'INTERNAL', message: 'Create user error' });
+      return res.status(500).json({
+        ok: false, code: 'INTERNAL',
+        message: 'Create user error'
+      });
     }
 
     return res.status(201).json({ ok: true, code: 'USER_CREATED' });
@@ -25,7 +37,7 @@ exports.register = async (req, res, next) => {
 };
 
 
-// POST /api/login
+// POST /api/login. //////////////////////////////////////////////
 exports.login = async (req, res, next) => {
   try {
     const email = String(req.body?.email || '').trim();
@@ -33,7 +45,10 @@ exports.login = async (req, res, next) => {
     const oldToken = req.cookies?.[cfg.security.cookieName] || null;
 
     if (!email || !password) {
-      return res.status(400).json({ ok: false, code: 'BAD_REQUEST', error: 'Email and password are required' });
+      return res.status(400).json({
+        ok: false, code: 'BAD_REQUEST',
+        error: 'Email and password are required'
+      });
     }
 
     const result = await authService.login({ email, password, oldToken });
@@ -49,7 +64,7 @@ exports.login = async (req, res, next) => {
         sameSite: String(cfg.security.cookieSameSite || 'lax').toLowerCase(), // 'lax' | 'strict' | 'none'
         secure: cfg.security.cookieSecure ?? (cfg.env === 'production'),
         path: '/',
-        expires: expiresDate, 
+        expires: expiresDate,
       })
 
       .json({ ok: true, code: 'LOGGED_IN' });
@@ -59,22 +74,30 @@ exports.login = async (req, res, next) => {
 };
 
 
-
-
-//POST /api/logout
+// POST /api/logout. //////////////////////////////////////////////
 exports.logout = async (req, res, next) => {
-  try {
-    const token = req.cookies?.auth;         // синхронно
-    console.log('[logout] info:', req.cookie);
+  const opts = cookieOptions();
+  const token = req.cookies?.auth;
 
+  try {
     if (token) {
-      // якщо у тебе є "м'який" attach, можна передати req.userId; інакше видалимо по токену
-      await authService.revokeSession(token, req.userId ?? null);
+      // Ідемпотентно ігноруємо SESSION_NOT_FOUND
+      await authService.revokeSession(token);
     }
 
-    // чистимо cookie в будь-якому випадку (ідемпотентно)
-    res.clearCookie('auth', cookieOptions());
+    // Чистимо куку у будь-якому разі
+    res.clearCookie('auth', opts);
 
-    return res.status(200).json({ ok: true });
-  } catch (e) { next(e); }
+    // Успіх без тіла
+    return res.status(204).end();
+  } catch (e) {
+    // Все одно чистимо куку на клієнті
+    res.clearCookie('auth', opts);
+
+    // Сигналізуємо про збій сервера
+    return res.status(500).json({
+      ok: false,
+      error: { code: 'INTERNAL', message: 'Logout failed' },
+    });
+  }
 };
