@@ -7,7 +7,7 @@ module.exports = (sequelize) => {
     userid:     { type: Sequelize.INTEGER },
 
     created_at: { type: Sequelize.INTEGER, allowNull: false, defaultValue: Sequelize.literal('UNIX_TIMESTAMP()') },
-    updated_at: { type: Sequelize.INTEGER, allowNull: false, defaultValue: Sequelize.literal('UNIX_TIMESTAMP()') },
+    expires_at: { type: Sequelize.INTEGER, allowNull: false, defaultValue: Sequelize.literal('UNIX_TIMESTAMP()') },
   }, {
     timestamps: false,
     tableName: 'authkey',
