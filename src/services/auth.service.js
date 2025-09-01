@@ -1,6 +1,6 @@
 // Бізнес-логіка: реєстрація / логін / me / мультилогін (список/ревок)
 const crypto = require('crypto');
-const randomstring = require('randomstring');
+const cfg = require('../config');
 const { findByEmail, createUser } = require('../repositories/user.repo');
 const {
   createSession,
@@ -17,7 +17,8 @@ function hashPassword(plain) {
   return crypto.createHash('sha256').update(PASS_SALT + plain).digest('base64');
 }
 
-// Реєстрація
+///////////////////////////////////////////////////////////////////////////
+
 async function register({ email, password }) {
   const existing = await findByEmail(email);
   if (existing) {
@@ -28,28 +29,7 @@ async function register({ email, password }) {
   return { ok: true, user: { id: user.id, email: user.email } };
 }
 
-// // Логін + створення сесії (мультилогін дозволений)
-// async function login({ email, password }) {
-//   const user = await findByEmail(email);
-//   if (!user) {
-//     return { ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email or password is incorrect' } };
-//   }
-//   const incomingHash = hashPassword(password);
-//   if (incomingHash !== user.password) {
-//     return { ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email or password is incorrect' } };
-//   }
-
-//   const token = randomstring.generate(44);
-//   //  const session = await createSession({ userId: user.id, token });
-//   await createSession({ userId: user.id, token }); // створюємо в authkey
-
-//   return {
-//     ok: true,
-//     user: { id: user.id, email: user.email },
-//     session: { token }, 
-//     // session: { id: session.id, token },
-//   };
-// }
+///////////////////////////////////////////////////////////////////////////
 
 async function login({ email, password, oldToken = null }) {
   const user = await findByEmail(email);
@@ -62,30 +42,25 @@ async function login({ email, password, oldToken = null }) {
     return { ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email or password is incorrect' } };
   }
 
-  const newToken = randomstring.generate(44);
-  
-  // якщо є стара cookie — спробуємо «перезаписати» саме цю сесію
+  const newToken = crypto.randomBytes(32).toString('base64url');
+  const nowSec = Math.floor(Date.now() / 1000);
+  const expiresAtSec = nowSec + Number(cfg.security.sessionTtlSec);
+
   if (oldToken) {
-    const prev = await findByToken(oldToken);         // { authkey, userid, ... } або null
-    if (prev && prev.userid === user.id) {
-      // це той самий користувач і той самий пристрій → видаляємо старий рядок і створюємо новий
-      await deleteByToken(oldToken);                  // очікуємо delete count = 1
-      await createSession({ userId: user.id, token: newToken });
-    } else {
-      // стара cookie не валідна/чужа → просто створюємо нову сесію (інші пристрої не чіпаємо)
-      await createSession({ userId: user.id, token: newToken });
-    }
-  } else {
-    // cookie не було → звичайне створення нової сесії
-    await createSession({ userId: user.id, token: newToken });
+    const prev = await findByToken(oldToken);
+    if (prev && prev.userid === user.id) await deleteByToken(oldToken);
   }
+
+  await createSession({ userId: user.id, token: newToken, expiresAtSec });
 
   return {
     ok: true,
     user: { id: user.id, email: user.email },
-    session: { token: newToken, action: oldToken ? 'replaced-or-created' : 'created' },
+    session: { token: newToken, expires_at: expiresAtSec },
   };
 }
+
+///////////////////////////////////////////////////////////////////////////
 
 
 

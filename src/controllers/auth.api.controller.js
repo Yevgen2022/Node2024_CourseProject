@@ -67,15 +67,17 @@ exports.login = async (req, res, next) => {
       return res.status(401).json(result); // напр. { ok:false, code:'INVALID_CREDENTIALS' }
     }
 
+    const exp = result.session.expires_at * 1000; // одна маленька конвертація в Date
+
     return res
       .status(200)
 
-      .cookie('auth', token, {
+      .cookie('auth', result.session.token, {
         httpOnly: true,
         sameSite: 'lax',
         secure: process.env.NODE_ENV === 'production',
         path: '/',
-        expires: new Date(expiresAtSec * 1000) // одна маленька конвертація в Date
+        expires: exp
       })
 
       .json({ ok: true, code: 'LOGGED_IN' });

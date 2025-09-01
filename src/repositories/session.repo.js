@@ -13,17 +13,13 @@ const { Session } = require('../models');
 
 
 // створити сесію (мультилогін дозволений)
-async function createSession({ userId, token }) {
-  const nowSec = Math.floor(Date.now() / 1000);
-  const expiresAtSec = nowSec + (2*60*60);//2 hour
+async function createSession({ userId, token, expiresAtSec }) {
 
   return Session.create({
     authkey: token,    // PK
     userid: userId,
-    // created_at: ts,    // опціонально (є DEFAULT UNIX_TIMESTAMP())
     expires_at: expiresAtSec,
   });
-
 }
 
 // знайти сесію по токену (для перевірки cookie)
