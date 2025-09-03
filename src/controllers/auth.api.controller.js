@@ -1,5 +1,5 @@
 const authService = require('../services/auth.service');
-const cookieOptions = require('../utils/cookieOptions');
+const { setAuthCookie, clearAuthCookie} = require('../utils/cookies');
 const cfg = require('../config');
 
 
@@ -54,18 +54,19 @@ exports.login = async (req, res, next) => {
     const result = await authService.login({ email, password, oldToken });
     if (!result.ok) return res.status(401).json(result);
 
-    const expiresDate = new Date(result.session.expires_at * 1000);
+    // const expiresDate = new Date(result.session.expires_at * 1000);
+    setAuthCookie(res, result.session.token, result.session.expires_at);
 
     return res
       .status(200)
 
-      .cookie(cfg.security.cookieName, result.session.token, {
-        httpOnly: true,
-        sameSite: String(cfg.security.cookieSameSite || 'lax').toLowerCase(), // 'lax' | 'strict' | 'none'
-        secure: cfg.security.cookieSecure ?? (cfg.env === 'production'),
-        path: '/',
-        expires: expiresDate,
-      })
+      // .cookie(cfg.security.cookieName, result.session.token, {
+      //   httpOnly: true,
+      //   sameSite: String(cfg.security.cookieSameSite || 'lax').toLowerCase(), // 'lax' | 'strict' | 'none'
+      //   secure: cfg.security.cookieSecure ?? (cfg.env === 'production'),
+      //   path: '/',
+      //   expires: expiresDate,
+      // })
 
       .json({ ok: true, code: 'LOGGED_IN' });
   } catch (e) {
@@ -76,21 +77,24 @@ exports.login = async (req, res, next) => {
 
 // POST /api/logout. //////////////////////////////////////////////
 exports.logout = async (req, res, next) => {
-  const opts = cookieOptions();
-  const token = req.cookies?.auth;
+  // const opts = cookieOptions();
+  
 
   try {
+    const token = req.cookies?.auth;
     if (token) {
       // Ідемпотентно ігноруємо SESSION_NOT_FOUND
       await authService.revokeSession(token);
     }
 
-    res.clearCookie('auth', opts);
+    // res.clearCookie('auth', opts);
+    clearAuthCookie(res);
 
     return res.status(204).end();
   } catch (e) {
 
-    res.clearCookie('auth', opts);
+    // res.clearCookie('auth', opts);
+    clearAuthCookie(res);
 
     return res.status(500).json({
       ok: false,
