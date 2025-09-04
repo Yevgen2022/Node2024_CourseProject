@@ -1,90 +1,62 @@
 const authService = require('../services/auth.service');
-const { setAuthCookie, clearAuthCookie} = require('../utils/cookies');
+const { setAuthCookie, clearAuthCookie } = require('../utils/cookies');
 const cfg = require('../config');
+const { asyncHandler, AppError } = require('../utils/errors');
 
 
 
 // POST /api/register. //////////////////////////////////////////////
-exports.register = async (req, res, next) => {
-  try {
-    const { email, pass } = req.body;
+exports.register = asyncHandler(async (req, res) => {
+  const email = String(req.body?.email || '').trim();
+  const password = String(req.body?.pass ?? req.body?.password ?? '').trim();
 
-    if (!email || !pass) {
-      return res.status(400).json({
-        ok: false, code: 'BAD_REQUEST',
-        message: 'Email and password are required'
-      });
-    }
+  if (!email || !password) {
+    throw new AppError(400, 'BAD_REQUEST', 'Email and password are required');
+  }
 
-    const result = await authService.register({ email, password: pass });
+  const result = await authService.register({ email, password });
 
-    if (!result.ok && result.error?.message === 'user exists') {
-      return res.status(409).json({
-        ok: false, code: 'USER_EXISTS',
-        message: 'User already exists'
-      });
-    }
+  if (!result.ok) {
+    const code = result.error?.code || 'BAD_REQUEST';
+    const status = code === 'EMAIL_TAKEN' ? 409 : 400;
 
-    if (!result.ok) {
-      return res.status(500).json({
-        ok: false, code: 'INTERNAL',
-        message: 'Create user error'
-      });
-    }
+    throw new AppError(status, code, result.error?.message || 'Registration failed');
+  }
 
-    return res.status(201).json({ ok: true, code: 'USER_CREATED' });
-  } catch (e) { next(e); }
-};
-
+  // якщо не логінимо автоматично після реєстрації:
+  return res.status(201).json({
+    ok: true,
+    code: 'USER_CREATED',
+    user: result.user, // { id, email } — якщо сервіс повертає
+  });
+});
 
 // POST /api/login. //////////////////////////////////////////////
-exports.login = async (req, res, next) => {
-  try {
-    const email = String(req.body?.email || '').trim();
-    const password = String(req.body?.password ?? req.body?.pass ?? '').trim();
-    const oldToken = req.cookies?.[cfg.security.cookieName] || null;
+exports.login = asyncHandler(async (req, res) => {
+  const email = String(req.body?.email || '').trim();
+  const password = String(req.body?.password ?? req.body?.pass ?? '').trim();
+  const oldToken = req.cookies?.[cfg.security.cookieName] || null;
 
-    if (!email || !password) {
-      return res.status(400).json({
-        ok: false, code: 'BAD_REQUEST',
-        error: 'Email and password are required'
-      });
-    }
-
-    const result = await authService.login({ email, password, oldToken });
-    if (!result.ok) return res.status(401).json(result);
-
-    setAuthCookie(res, result.session.token, result.session.expires_at);
-
-    return res
-      .status(200)
-      .json({ ok: true, code: 'LOGGED_IN' });
-  } catch (e) {
-    return next(e);
+  if (!email || !password) {
+    throw new AppError(400, 'BAD_REQUEST', 'Email and password are required');
   }
-};
+
+  const result = await authService.login({ email, password, oldToken });
+  if (!result.ok) {
+    // приклад: мапимо результат сервісу в AppError
+    const status = result.error?.code === 'BAD_CREDENTIALS' ? 401 : 400;
+    throw new AppError(status, result.error.code, result.error.message);
+  }
+
+  setAuthCookie(res, result.session.token, result.session.expires_at);
+  res.status(200).json({ ok: true, code: 'LOGGED_IN' });
+});
 
 
 // POST /api/logout. //////////////////////////////////////////////
-exports.logout = async (req, res, next) => {
-  
-  try {
-    const token = req.cookies?.auth;
-    if (token) {
-      // Idempotently ignoring SESSION_NOT_FOUND
-      await authService.revokeSession(token);
-    }
-
-    clearAuthCookie(res);
-
-    return res.status(204).end();
-  } catch (e) {
-
-    clearAuthCookie(res);
-
-    return res.status(500).json({
-      ok: false,
-      error: { code: 'INTERNAL', message: 'Logout failed' },
-    });
-  }
-};
+exports.logout = asyncHandler(async (req, res) => {
+  const token = req.cookies?.[cfg.security.cookieName];
+  if (token) await authService.revokeSession(token); // ідемпотентно
+  clearAuthCookie(res);
+  res.status(204).end();
+});

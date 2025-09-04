@@ -6,7 +6,7 @@ const cookieParser = require('cookie-parser');
 // const routes = require('./routes/auth.routes');
 const pagesRoutes = require('./routes/pages.routes');
 const apiRoutes   = require('./routes/api.routes');
-const errorHandler = require('./middleware/error');
+const { notFoundHandler, errorHandler } = require('./middleware/error-handler');
 
 const app = express();
 // const ROOT = process.cwd();
@@ -93,18 +93,13 @@ app.use('/', pagesRoutes);
 app.use('/api', apiRoutes);
 
 
-
-
 /* =========================
  * 4) 404 — якщо жоден роут не підійшов
  * ========================= */
 
 // Якщо ми дійшли сюди — жоден попередній роут не обробив запит.
 // Повертаємо стандартизовану помилку 404 у JSON.
-app.use((req, res) => {
-  res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found' } });
-});
-
+app.use(notFoundHandler);
 
 /* =========================
  * 5) Централізований обробник помилок
