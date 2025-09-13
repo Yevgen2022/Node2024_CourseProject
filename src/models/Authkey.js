@@ -11,9 +11,15 @@ module.exports = (sequelize) => {
   }, {
     timestamps: false,
     tableName: 'authkey',
-  });
+  
+  //  indexes: [
+  //     // primary key на authkey вже є автоматично
+  //     { fields: ['expires_at'] },   // index for quick cleanup of expired sessions
+  //     { fields: ['userid'] }        // can be added if you often search for all user sessions
+  //   ],
+});
 
-  Authkey.beforeUpdate((instance) => { instance.updated_at = Math.floor(Date.now() / 1000); });
+  // Authkey.beforeUpdate((instance) => { instance.updated_at = Math.floor(Date.now() / 1000); });
 
   return Authkey;
 };

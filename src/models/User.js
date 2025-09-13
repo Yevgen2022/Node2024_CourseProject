@@ -12,10 +12,10 @@ module.exports = (sequelize) => {
     updated_at:{ type: Sequelize.INTEGER, allowNull: false, defaultValue: Sequelize.literal('UNIX_TIMESTAMP()') },
   }, {
     tableName: 'users',
-    timestamps: false,   // дуже важливо: не використовуємо built-in Date timestamps
+    timestamps: false,   // very important: do not use built-in Date timestamps
   });
 
-  // щоб updated_at оновлювався автоматично при апдейтах
+  // so that updated_at is automatically updated upon updates
   User.beforeUpdate((instance) => { instance.updated_at = Math.floor(Date.now() / 1000); });
 
   return User;
