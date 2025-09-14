@@ -30,3 +30,7 @@ Thumbs.db
 
 # txt files
 *.txt
+
+# source files
+.sequelizerc
+config/
