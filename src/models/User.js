@@ -18,7 +18,12 @@ module.exports = (sequelize) => {
       beforeUpdate(instance) {
         const now = Math.floor(Date.now() / 1000);
         instance.updated_at = now;
-      }
+      },
+      beforeCreate(instance) {
+        const now = Math.floor(Date.now() / 1000);
+        instance.created_at = now;
+        instance.updated_at = now;
+      },
     }
 
   });

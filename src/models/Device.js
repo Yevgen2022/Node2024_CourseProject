@@ -4,9 +4,9 @@ const Sequelize = require('sequelize');
 module.exports = (sequelize) => {
   const Device = sequelize.define('Device', {
     id: { type: Sequelize.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
-    user_id: { type: Sequelize.INTEGER.UNSIGNED, allowNull: true },
-    user_agent: { type: Sequelize.STRING(255), allowNull: true },
-    ip_address: { type: Sequelize.STRING(45), allowNull: true },
+    user_id: { type: Sequelize.INTEGER.UNSIGNED, allowNull: false },
+    user_agent: { type: Sequelize.STRING(255), allowNull: false },
+    ip_address: { type: Sequelize.STRING(45), allowNull: false },
 
     created_at: { type: Sequelize.INTEGER, allowNull: false, defaultValue: () => Math.floor(Date.now() / 1000) },
     updated_at: { type: Sequelize.INTEGER, allowNull: false, defaultValue: () => Math.floor(Date.now() / 1000) },

@@ -10,9 +10,9 @@ module.exports = {
         primaryKey: true
       },
       // приклад полів пристрою (додай свої за потреби)
-      user_id:       { type: Sequelize.INTEGER.UNSIGNED, allowNull: true },
-      user_agent:    { type: Sequelize.STRING(255), allowNull: true },
-      ip_address:    { type: Sequelize.STRING(45),  allowNull: true }, // IPv4/IPv6
+      user_id:       { type: Sequelize.INTEGER.UNSIGNED, allowNull: false },
+      user_agent:    { type: Sequelize.STRING(255), allowNull: false },
+      ip_address:    { type: Sequelize.STRING(45),  allowNull: false }, // IPv4/IPv6
 
       created_at:    { type: Sequelize.INTEGER, allowNull: false },
       updated_at:    { type: Sequelize.INTEGER, allowNull: false },
