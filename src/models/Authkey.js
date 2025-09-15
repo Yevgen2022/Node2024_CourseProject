@@ -13,7 +13,7 @@ module.exports = (sequelize) => {
     tableName: 'authkey',
   
   //  indexes: [
-  //     // primary key на authkey вже є автоматично
+  //     // primary key on authkey is already there automatically
   //     { fields: ['expires_at'] },   // index for quick cleanup of expired sessions
   //     { fields: ['userid'] }        // can be added if you often search for all user sessions
   //   ],

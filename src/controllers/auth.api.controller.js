@@ -23,11 +23,11 @@ exports.register = asyncHandler(async (req, res) => {
     throw new AppError(status, code, result.error?.message || 'Registration failed');
   }
 
-  // якщо не логінимо автоматично після реєстрації:
+  // if we don't log in automatically after registration:
   return res.status(201).json({
     ok: true,
     code: 'USER_CREATED',
-    user: result.user, // { id, email } — якщо сервіс повертає
+    user: result.user, // { id, email } — if the service returns
   });
 });
 
